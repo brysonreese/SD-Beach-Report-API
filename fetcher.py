@@ -24,7 +24,7 @@ def fetch_stations():
     
     return stations
 
-def fetch_records():
+def fetch_advisories():
     session = requests.Session()
     search_url = "https://beachwatch.waterboards.ca.gov/public/advisory.php"
     export_url = "https://beachwatch.waterboards.ca.gov/public/export.php"
@@ -56,11 +56,11 @@ def fetch_records():
     if json_str is None:
         return []
 
-    records = json.loads(json_str)
+    advisories = json.loads(json_str)
 
-    filtered_records = []
-    for record in records:
-        if record.get('Station Name') is not None:
-            filtered_records.append(record)
+    filtered_advisories = []
+    for advisory in advisories:
+        if advisory.get('Station Name') is not None:
+            filtered_advisories.append(advisory)
 
-    return filtered_records
+    return filtered_advisories

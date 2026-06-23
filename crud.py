@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import desc, update
 from sqlalchemy.dialects.sqlite import insert
-from models import Record, Station
+from models import Advisory, Station
 from datetime import datetime
 
 def parse_date_from_string(date_string):
@@ -8,80 +9,93 @@ def parse_date_from_string(date_string):
         return date_string
     return datetime.strptime(date_string, "%Y-%m-%d").date()
 
-def seed_stations(db: Session, stations: list):
-    for station in stations:
-        stmt = insert(Station).values(
-            station_name = station
-        ).on_conflict_do_nothing()
-        db.execute(stmt)
-    db.commit()
+def get_all_advisories(db: Session):
+    return db.query(Advisory).all()
 
-def upsert_records(db: Session, records: list):
-    stations = [station.station_name for station in get_all_stations(db)]
+def get_advisory(db: Session, advisory_id: str):
+    return db.query(Advisory).filter(Advisory.id == advisory_id).first()
+
+def get_active_advisories(db: Session):
+    return db.query(Advisory).filter(Advisory.active == True).all()
+
+def get_advisories_by_station(db: Session, station_name: str):
+    return db.query(Advisory).filter(Advisory.station_name == station_name).all()
+
+def get_latest_advisory_by_station(db: Session, station_name: str):
+    return db.query(Advisory).filter(Advisory.station_name == station_name).order_by(desc(Advisory.start_date)).first()
+
+def get_all_closures(db: Session):
+    return db.query(Advisory).filter(Advisory.type == "Closure").all()
+
+def get_active_closures(db: Session):
+    return db.query(Advisory).filter(Advisory.active == True).filter(Advisory.type == "Closure").all()
+
+def get_all_stations(db: Session):
+    return db.query(Station).all()
+
+def upsert_advisories(db: Session, advisories: list):
     count = 0
-
-    for record in records:
-        if record.get('Station Name') not in stations:
-            continue
-        stmt = insert(Record).values(
-            id=str(record['id']),
-            description=record.get('Description'),
-            station_description=record.get('StationDescription'),
-            beach_name=record.get('Beach Name'),
-            latitude=record.get('Latitude'),
-            longitude=record.get('Longitude'),
-            extent_start=record.get('Extent Start'),
-            extent_start_type=record.get('Extent Start Type'),
-            extent_end=record.get('Extent End'),
-            extent_end_type=record.get('Extent End Type'),
-            station_name=record.get('Station Name'),
-            type=record.get('Type'),
-            cause=record.get('Cause'),
-            source=record.get('Source'),
-            substance=record.get('Substance'),
-            substance_volume=record.get('Substance Volume'),
-            substance_unit=record.get('Substance Unit'),
-            start_date=parse_date_from_string(record.get('Start Date')),
-            start_time=record.get('Start Time'),
-            end_date=parse_date_from_string(record.get('End Date')),
-            end_time=record.get('End Time'),
-            county=record.get('County'),
-            comments=record.get('Comments'),
-            enterococcus=record.get('Enterococcus'),
-            fecal_coliforms=record.get('Fecal Coliforms'),
-            total_coliforms=record.get('Total Coliforms'),
-            area_description=record.get('Area Description'),
-            active=record.get('End Date') is None
+    
+    for advisory in advisories:
+        stmt = insert(Advisory).values(
+            id=str(advisory['id']),
+            description=advisory.get('Description'),
+            station_description=advisory.get('StationDescription'),
+            beach_name=advisory.get('Beach Name'),
+            latitude=advisory.get('Latitude'),
+            longitude=advisory.get('Longitude'),
+            extent_start=advisory.get('Extent Start'),
+            extent_start_type=advisory.get('Extent Start Type'),
+            extent_end=advisory.get('Extent End'),
+            extent_end_type=advisory.get('Extent End Type'),
+            station_name=advisory.get('Station Name'),
+            type=advisory.get('Type'),
+            cause=advisory.get('Cause'),
+            source=advisory.get('Source'),
+            substance=advisory.get('Substance'),
+            substance_volume=advisory.get('Substance Volume'),
+            substance_unit=advisory.get('Substance Unit'),
+            start_date=parse_date_from_string(advisory.get('Start Date')),
+            start_time=advisory.get('Start Time'),
+            end_date=parse_date_from_string(advisory.get('End Date')),
+            end_time=advisory.get('End Time'),
+            county=advisory.get('County'),
+            comments=advisory.get('Comments'),
+            enterococcus=advisory.get('Enterococcus'),
+            fecal_coliforms=advisory.get('Fecal Coliforms'),
+            total_coliforms=advisory.get('Total Coliforms'),
+            area_description=advisory.get('Area Description'),
+            active=advisory.get('End Date') is None
         ).on_conflict_do_update(
             index_elements=['id'],
             set_=dict(
-                description=record.get('Description'),
-                station_description=record.get('StationDescription'),
-                beach_name=record.get('Beach Name'),
-                latitude=record.get('Latitude'),
-                longitude=record.get('Longitude'),
-                extent_start=record.get('Extent Start'),
-                extent_start_type=record.get('Extent Start Type'),
-                extent_end=record.get('Extent End'),
-                extent_end_type=record.get('Extent End Type'),
-                station_name=record.get('Station Name'),
-                type=record.get('Type'),
-                cause=record.get('Cause'),
-                source=record.get('Source'),
-                substance=record.get('Substance'),
-                substance_volume=record.get('Substance Volume'),
-                substance_unit=record.get('Substance Unit'),
-                start_date=parse_date_from_string(record.get('Start Date')),
-                start_time=record.get('Start Time'),
-                end_date=parse_date_from_string(record.get('End Date')),
-                end_time=record.get('End Time'),
-                county=record.get('County'),
-                comments=record.get('Comments'),
-                enterococcus=record.get('Enterococcus'),
-                fecal_coliforms=record.get('Fecal Coliforms'),
-                total_coliforms=record.get('Total Coliforms'),
-                area_description=record.get('Area Description'),
-                active=record.get('End Date') is None
+                description=advisory.get('Description'),
+                station_description=advisory.get('StationDescription'),
+                beach_name=advisory.get('Beach Name'),
+                latitude=advisory.get('Latitude'),
+                longitude=advisory.get('Longitude'),
+                extent_start=advisory.get('Extent Start'),
+                extent_start_type=advisory.get('Extent Start Type'),
+                extent_end=advisory.get('Extent End'),
+                extent_end_type=advisory.get('Extent End Type'),
+                station_name=advisory.get('Station Name'),
+                type=advisory.get('Type'),
+                cause=advisory.get('Cause'),
+                source=advisory.get('Source'),
+                substance=advisory.get('Substance'),
+                substance_volume=advisory.get('Substance Volume'),
+                substance_unit=advisory.get('Substance Unit'),
+                start_date=parse_date_from_string(advisory.get('Start Date')),
+                start_time=advisory.get('Start Time'),
+                end_date=parse_date_from_string(advisory.get('End Date')),
+                end_time=advisory.get('End Time'),
+                county=advisory.get('County'),
+                comments=advisory.get('Comments'),
+                enterococcus=advisory.get('Enterococcus'),
+                fecal_coliforms=advisory.get('Fecal Coliforms'),
+                total_coliforms=advisory.get('Total Coliforms'),
+                area_description=advisory.get('Area Description'),
+                active=advisory.get('End Date') is None
             )
         )
         db.execute(stmt)
@@ -90,23 +104,25 @@ def upsert_records(db: Session, records: list):
     db.commit()
     return count
 
-def get_all_records(db: Session):
-    return db.query(Record).all()
+def upsert_stations(db: Session, stations: list):
+    for station in stations:
+        stmt = insert(Station).values(
+            station_name = station
+        ).on_conflict_do_nothing()
+        db.execute(stmt)
+    
+        advisory = get_latest_advisory_by_station(db, station)
+        if advisory is None:
+            continue
 
-def get_record(db: Session, record_id: str):
-    return db.query(Record).filter(Record.id == record_id).first()
+        stmt = update(Station).where(Station.station_name == station).values(
+            beach_name = advisory.beach_name,
+            station_description = advisory.station_description,
+            latitude = advisory.latitude,
+            longitude = advisory.longitude,
+            area_description = advisory.area_description,
+            county = advisory.county
+        )
 
-def get_active_records(db: Session):
-    return db.query(Record).filter(Record.active == True).all()
-
-def get_records_by_station(db: Session, station_name: str):
-    return db.query(Record).filter(Record.station_name == station_name).all()
-
-def get_all_closures(db: Session):
-    return db.query(Record).filter(Record.type == "Closure").all()
-
-def get_active_closures(db: Session):
-    return db.query(Record).filter(Record.active == True).filter(Record.type == "Closure").all()
-
-def get_all_stations(db: Session):
-    return db.query(Station).all()
+        db.execute(stmt)
+    db.commit()

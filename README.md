@@ -4,7 +4,7 @@ A FastAPI backend that aggregates San Diego beach water quality data from the Ca
 
 ## What it does
 - Scrapes beach advisory and closure data from CA Beach Watch on a scheduled interval
-- Stores historical records in a local SQLite database
+- Stores historical advisories in a local SQLite database
 - Exposes clean REST endpoints for the SD Beach Report iOS app
 
 ## Stack

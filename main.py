@@ -12,10 +12,10 @@ def scheduled_fetch():
     db = next(get_db())
     try:
         stations = fetcher.fetch_stations()
-        crud.seed_stations(db, stations)
-        records = fetcher.fetch_records()
-        upsert_count = crud.upsert_records(db, records)
-        print(f"Fetched and upserted {upsert_count} records")
+        advisories = fetcher.fetch_advisories()
+        advisories_count = crud.upsert_advisories(db, advisories)
+        stations_count = crud.upsert_stations(db, stations)
+        print(f"Fetched and upserted {advisories_count } advisories")
     except Exception as e:
         print(f"Fetch failed: {e}")
     finally:
@@ -33,21 +33,21 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-@app.get("/records")
-def get_all_records(db: Session = Depends(get_db)):
-    return crud.get_all_records(db)
+@app.get("/advisories")
+def get_all_advisories(db: Session = Depends(get_db)):
+    return crud.get_all_advisories(db)
 
-@app.get("/records/active")
-def get_active_records(db: Session = Depends(get_db)):
-    return crud.get_active_records(db)
+@app.get("/advisories/active")
+def get_active_advisories(db: Session = Depends(get_db)):
+    return crud.get_active_advisories(db)
 
-@app.get("/records/{record_id}")
-def get_record(record_id: str, db: Session = Depends(get_db)):
-    return crud.get_record(db, record_id)
+@app.get("/advisories/{advisory_id}")
+def get_advisory(advisory_id: str, db: Session = Depends(get_db)):
+    return crud.get_advisory(db, advisory_id)
 
-@app.get("/records/station/{station_name}")
-def get_records_by_station(station_name: str, db: Session = Depends(get_db)):
-    return crud.get_records_by_station(db, station_name)
+@app.get("/advisories/station/{station_name}")
+def get_advisories_by_station(station_name: str, db: Session = Depends(get_db)):
+    return crud.get_advisories_by_station(db, station_name)
 
 @app.get("/closures")
 def get_all_closures(db: Session = Depends(get_db)):
@@ -56,3 +56,7 @@ def get_all_closures(db: Session = Depends(get_db)):
 @app.get("/closures/active")
 def get_active_closures(db: Session = Depends(get_db)):
     return crud.get_active_closures(db)
+
+@app.get("/stations")
+def get_all_stations(db: Session = Depends(get_db)):
+    return crud.get_all_stations(db)

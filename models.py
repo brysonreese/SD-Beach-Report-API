@@ -1,8 +1,8 @@
 from sqlalchemy import Column, String, Float, Boolean, Date
 from database import Base
 
-class Record(Base):
-    __tablename__ = "records"
+class Advisory(Base):
+    __tablename__ = "advisories"
 
     id = Column(String, primary_key=True)
     description = Column(String, nullable=True)
