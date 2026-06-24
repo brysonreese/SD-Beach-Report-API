@@ -2,27 +2,36 @@ import requests
 import pandas as pd
 from io import StringIO
 import json
-from bs4 import BeautifulSoup
 
 def fetch_stations():
-    station_url = "https://beachwatch.waterboards.ca.gov/public/getstation.php"
-    
-    station_response = requests.post(
-        station_url,
-        data={'county': '10'}
-    )
-    
-    soup = BeautifulSoup(station_response.text, 'html.parser')
-    options = soup.find_all("option")
-    
-    stations = []
-    for option in options:
-        name = option.text.strip()
-        if name == "All Stations":
-            continue
-        stations.append(name)
-    
-    return stations
+    CKAN_STATIONS_URL = "https://data.ca.gov/api/3/action/datastore_search"
+    STATIONS_RESOURCE_ID = "98e628ff-d012-4982-ad32-b9f9ad8ab524"
+
+    all_records = []
+    offset = 0
+    limit = 100
+    filters = {
+        "CountyName": "San Diego",
+        "Status": "Active"
+    }
+    while True:
+        params = {
+            'resource_id': STATIONS_RESOURCE_ID,
+            'filters': json.dumps(filters),
+            'limit': limit,
+            'offset': offset
+        }
+        response = requests.get(CKAN_STATIONS_URL, params=params)
+        data = response.json()
+
+        records = data['result']['records']
+        if not records:
+            break
+
+        all_records.extend(records)
+        offset += limit
+
+    return all_records
 
 def fetch_advisories():
     session = requests.Session()

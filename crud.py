@@ -35,8 +35,12 @@ def get_all_stations(db: Session):
 
 def upsert_advisories(db: Session, advisories: list):
     count = 0
-    
+    stations = [ station.station_name for station in get_all_stations(db) ]
+
     for advisory in advisories:
+        if advisory.get('Station Name') not in stations:
+            continue
+
         stmt = insert(Advisory).values(
             id=str(advisory['id']),
             description=advisory.get('Description'),
@@ -105,24 +109,34 @@ def upsert_advisories(db: Session, advisories: list):
     return count
 
 def upsert_stations(db: Session, stations: list):
+    count = 0
+
     for station in stations:
         stmt = insert(Station).values(
-            station_name = station
-        ).on_conflict_do_nothing()
-        db.execute(stmt)
-    
-        advisory = get_latest_advisory_by_station(db, station)
-        if advisory is None:
-            continue
-
-        stmt = update(Station).where(Station.station_name == station).values(
-            beach_name = advisory.beach_name,
-            station_description = advisory.station_description,
-            latitude = advisory.latitude,
-            longitude = advisory.longitude,
-            area_description = advisory.area_description,
-            county = advisory.county
+            station_id=station.get('Station_id'),
+            station_name=station.get('Station_Name'),
+            station_description=station.get('Station_Description'),
+            beach_name=station.get('Beach_Name'),
+            nearest_city=station.get('NearestCityName'),
+            latitude=station.get('Station_UpperLat'),
+            longitude=station.get('Station_UpperLon'),
+            status=station.get('Status'),
+            beach_name_id=station.get('BeachName_id')
+        ).on_conflict_do_update(
+            index_elements=['station_id'],
+            set_=dict(
+                station_name=station.get('Station_Name'),
+                station_description=station.get('Station_Description'),
+                beach_name=station.get('Beach_Name'),
+                nearest_city=station.get('NearestCityName'),
+                latitude=station.get('Station_UpperLat'),
+                longitude=station.get('Station_UpperLon'),
+                status=station.get('Status'),
+                beach_name_id=station.get('BeachName_id')
+            )
         )
-
         db.execute(stmt)
+        count += 1
+
     db.commit()
+    return count

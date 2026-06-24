@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Boolean, Date
+from sqlalchemy import Column, String, Float, Boolean, Date, Integer
 from database import Base
 
 class Advisory(Base):
@@ -33,14 +33,15 @@ class Advisory(Base):
     area_description = Column(String, nullable=True)
     active = Column(Boolean, default=True)
 
-
 class Station(Base):
     __tablename__ = "stations"
-
-    station_name = Column(String, primary_key=True)
-    beach_name = Column(String, nullable=True)
+    
+    station_id = Column(Integer, primary_key=True)
+    station_name = Column(String, nullable=True)
     station_description = Column(String, nullable=True)
+    beach_name = Column(String, nullable=True)
+    nearest_city = Column(String, nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    area_description = Column(String, nullable=True)
-    county = Column(String, nullable=True)
+    status = Column(String, nullable=True)
+    beach_name_id = Column(Integer, nullable=True)
