@@ -60,3 +60,7 @@ def get_active_closures(db: Session = Depends(get_db)):
 @app.get("/stations")
 def get_all_stations(db: Session = Depends(get_db)):
     return crud.get_all_stations(db)
+
+@app.get("/beach_status")
+def get_all_beach_statuses(db: Session = Depends(get_db)):
+    return crud.get_all_beach_statuses(db)

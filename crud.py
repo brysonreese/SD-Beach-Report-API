@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, update
+from sqlalchemy import desc
 from sqlalchemy.dialects.sqlite import insert
 from models import Advisory, Station
 from datetime import datetime
@@ -32,6 +32,36 @@ def get_active_closures(db: Session):
 
 def get_all_stations(db: Session):
     return db.query(Station).all()
+
+def get_all_beach_statuses(db: Session):
+    stations = db.query(Station).all()
+    
+    active_advisories = get_active_advisories(db)
+    
+    advisory_by_station = {}
+    for advisory in active_advisories:
+        advisory_by_station[advisory.station_name] = advisory
+
+    results = []
+
+    for station in stations:
+        advisory = advisory_by_station.get(station.station_name)
+
+        results.append({
+            "station_id": station.station_id,
+            "station_name": station.station_name,
+            "beach_name": station.beach_name,
+            "station_description": station.station_description,
+            "latitude": station.latitude,
+            "longitude": station.longitude,
+            "advisory": {
+                "type": advisory.type,
+                "cause": advisory.cause,
+                "start_date": advisory.start_date.isoformat() if advisory.start_date else None
+            } if advisory else None
+        })
+
+    return results
 
 def upsert_advisories(db: Session, advisories: list):
     count = 0
