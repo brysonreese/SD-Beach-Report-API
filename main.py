@@ -22,7 +22,7 @@ def scheduled_fetch():
         db.close()
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(scheduled_fetch, 'interval', minutes=60)
+scheduler.add_job(scheduled_fetch, 'interval', minutes=15)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
