@@ -13,8 +13,8 @@ def scheduled_fetch():
     try:
         stations = fetcher.fetch_stations()
         advisories = fetcher.fetch_advisories()
-        advisories_count = crud.upsert_advisories(db, advisories)
         stations_count = crud.upsert_stations(db, stations)
+        advisories_count = crud.upsert_advisories(db, advisories)
         print(f"Fetched and upserted {advisories_count} advisories and {stations_count} stations")
     except Exception as e:
         print(f"Fetch failed: {e}")
